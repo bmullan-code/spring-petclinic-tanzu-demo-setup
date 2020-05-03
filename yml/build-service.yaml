@@ -1,0 +1,45 @@
+
+---
+apiVersion: build.pivotal.io/v1alpha1
+kind: ClusterBuilder
+metadata:
+  name: default
+
+spec:
+  image: cloudfoundry/cnb:0.0.114-bionic
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dockerhub-credentials
+  annotations:
+    build.pivotal.io/docker: https://index.docker.io/v1/
+type: kubernetes.io/basic-auth
+stringData:
+  username: <dockerhub username>
+  password: <dockerhub password>
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kpack-service-account
+secrets:
+  - name: dockerhub-credentials
+---
+apiVersion: build.pivotal.io/v1alpha1
+kind: Image
+metadata:
+  name: spring-petclinic
+spec:
+  builder:
+    name: default
+    kind: ClusterBuilder
+  serviceAccount: kpack-service-account
+#  cacheSize: "1.5Gi"
+  source:
+    git:
+      url: https://github.com/<github account>/spring-petclinic
+      revision: wavefront
+  tag: <dockerhub username>/spring-petclinic:latest
+
+
